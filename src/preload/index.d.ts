@@ -1,10 +1,7 @@
-import { ElectronAPI } from '@electron-toolkit/preload'
-
 export interface Task {
   id: number
   name: string
   created_at: string
-  updated_at: string
 }
 
 export interface TimeEntry {
@@ -16,7 +13,6 @@ export interface TimeEntry {
 
 declare global {
   interface Window {
-    electron: ElectronAPI
     api: {
       tasks: {
         getAll: () => Promise<Task[]>
@@ -34,6 +30,9 @@ declare global {
         getByDay: (date: string) => Promise<TimeEntry[]>
         getByWeek: (date: string) => Promise<TimeEntry[]>
         getByMonth: (date: string) => Promise<TimeEntry[]>
+      }
+      window: {
+        resize: (height: number) => Promise<void>
       }
     }
   }

@@ -1,7 +1,9 @@
+import Popover from './components/popover'
+
 function App(): React.JSX.Element {
   return (
     <>
-      <h1 className="font-bold underline">Hello world!</h1>
+      <Popover></Popover>
     </>
   )
 }

@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
 const api = {
@@ -21,22 +20,11 @@ const api = {
     getByDay: (date: string) => ipcRenderer.invoke('time-entries:get-by-day', date),
     getByWeek: (date: string) => ipcRenderer.invoke('time-entries:get-by-week', date),
     getByMonth: (date: string) => ipcRenderer.invoke('time-entries:get-by-month', date)
+  },
+  window: {
+    resize: (height: number) => ipcRenderer.invoke('window:resize', height)
   }
 }
 
-// Use `contextBridge` APIs to expose Electron APIs to
-// renderer only if context isolation is enabled, otherwise
-// just add to the DOM global.
-if (process.contextIsolated) {
-  try {
-    contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
-  } catch (error) {
-    console.error(error)
-  }
-} else {
-  // @ts-ignore (define in dts)
-  window.electron = electronAPI
-  // @ts-ignore (define in dts)
-  window.api = api
-}
+// Expose APIs to renderer via contextBridge
+contextBridge.exposeInMainWorld('api', api)

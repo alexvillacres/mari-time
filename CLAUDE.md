@@ -31,6 +31,7 @@ Electron app with three process types:
 ### IPC Pattern
 
 Database operations flow through IPC:
+
 1. Renderer calls `window.api.db.methodName()`
 2. Preload invokes `ipcRenderer.invoke('db:method-name')`
 3. Main handles via `ipcMain.handle('db:method-name')` and executes SQLite query
