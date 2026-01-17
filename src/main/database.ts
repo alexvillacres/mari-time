@@ -5,13 +5,13 @@ import { join } from 'path'
 interface Task {
   id: number
   name: string
-  created_at: string
+  created_at: number
 }
 
 interface TimeEntry {
   id: number
   task_id: number
-  date: string
+  date: number
   duration: number
 }
 
@@ -31,7 +31,7 @@ export function initializeDatabase(): Database.Database {
     CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        created_at TEXT NOT NULL DEFAULT (unixepoch())
+        created_at INTEGER NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS time_entries (
@@ -154,15 +154,15 @@ export function getTimeEntriesByRange(startDate: number, endDate: number): TimeE
   return stmt.all(startDate, endDate) as TimeEntry[]
 }
 
-// Core prompt action: upserts 15 min to task for today
+// Core prompt action: upserts 20 min to task for today
 export function confirmTask(taskId: number): TimeEntry {
   const db = getDatabase()
   const today = getMidnightTimestamp()
 
   const stmt = db.prepare(`
     INSERT INTO time_entries (task_id, date, duration)
-    VALUES (?, ?, 900)
-    ON CONFLICT(task_id, date) DO UPDATE SET duration = duration + 900
+    VALUES (?, ?, 1200)
+    ON CONFLICT(task_id, date) DO UPDATE SET duration = duration + 1200
     RETURNING *
   `)
 

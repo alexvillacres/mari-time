@@ -1,6 +1,7 @@
 import { ChevronRight, ChevronLeft } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
-import ActivityLog, { formatDuration } from './activity-log'
+import ActivityLog from './activity-log'
+import { formatDuration } from '../utils/duration'
 
 function getDateString(date: Date): string {
   return date.toISOString().split('T')[0]
