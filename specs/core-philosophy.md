@@ -5,6 +5,7 @@
 Most time trackers treat logging as a task. Start a timer. Stop the timer. Forgot to start? Reconstruct your day from memory. Forgot to stop? Your "quick email check" now shows 4 hours.
 
 This creates two failure modes:
+
 1. **Abandonment** — The overhead isn't worth the insight
 2. **Anxiety** — Time tracking becomes another thing to manage
 
@@ -37,7 +38,7 @@ The only time you need to act is when context changes. New task? Type it. Taking
 
 ### 3. Editor, Not Approver
 
-Time tracking is happening whether you engage or not. Your role shifts from *approving every entry* to *correcting the rare mistake*. Most days, there's nothing to correct.
+Time tracking is happening whether you engage or not. Your role shifts from _approving every entry_ to _correcting the rare mistake_. Most days, there's nothing to correct.
 
 ### 4. Small Errors, Easy Fixes
 
@@ -65,7 +66,7 @@ If the user is already managing their time (activity log is open), prompts suppr
 - **Not a billing system** — Export your data; invoice however you want
 - **Not a surveillance tool** — No screenshots, no app tracking, no "productivity scores"
 
-Mari answers one question: *Where did my time go?*
+Mari answers one question: _Where did my time go?_
 
 ---
 

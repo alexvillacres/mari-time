@@ -6,15 +6,15 @@ Two windows: prompt (interval-triggered) and activity log (user-triggered). Both
 
 Both windows share these characteristics:
 
-| Property | Value | Reason |
-|----------|-------|--------|
-| `frame` | `false` | Clean popover aesthetic |
-| `transparent` | `true` | Rounded corners, no window chrome |
-| `alwaysOnTop` | `true` | Stay above other apps |
-| `skipTaskbar` | `true` | Menu bar app, not in dock/taskbar |
-| `movable` | `false` | Fixed position below tray |
-| `show` | `false` | Created hidden, shown programmatically |
-| `webPreferences.preload` | Preload script path | IPC bridge |
+| Property                 | Value               | Reason                                 |
+| ------------------------ | ------------------- | -------------------------------------- |
+| `frame`                  | `false`             | Clean popover aesthetic                |
+| `transparent`            | `true`              | Rounded corners, no window chrome      |
+| `alwaysOnTop`            | `true`              | Stay above other apps                  |
+| `skipTaskbar`            | `true`              | Menu bar app, not in dock/taskbar      |
+| `movable`                | `false`             | Fixed position below tray              |
+| `show`                   | `false`             | Created hidden, shown programmatically |
+| `webPreferences.preload` | Preload script path | IPC bridge                             |
 
 ## Prompt Window
 
@@ -41,14 +41,14 @@ const promptWindow = new BrowserWindow({
 
 ### Behavior
 
-| Event | Action |
-|-------|--------|
-| Timer fires | Show window, start 10s timeout |
-| Timeout (10s) | Hide, confirm current task |
-| Blur | Hide, confirm current task |
-| `Cmd+Enter` | Hide, confirm current task |
-| `Esc` | Hide, deny (no time logged) |
-| Task selected | Hide, switch to selected task |
+| Event         | Action                         |
+| ------------- | ------------------------------ |
+| Timer fires   | Show window, start 10s timeout |
+| Timeout (10s) | Hide, confirm current task     |
+| Blur          | Hide, confirm current task     |
+| `Cmd+Enter`   | Hide, confirm current task     |
+| `Esc`         | Hide, deny (no time logged)    |
+| Task selected | Hide, switch to selected task  |
 
 ### Positioning
 
@@ -97,13 +97,13 @@ const activityLogWindow = new BrowserWindow({
 
 ### Behavior
 
-| Event | Action |
-|-------|--------|
-| Tray click (hidden) | Show window |
-| Tray click (visible) | Hide window |
-| Blur | Hide window |
-| `Esc` | Hide window |
-| Resize | Reposition to stay anchored to top-right |
+| Event                | Action                                   |
+| -------------------- | ---------------------------------------- |
+| Tray click (hidden)  | Show window                              |
+| Tray click (visible) | Hide window                              |
+| Blur                 | Hide window                              |
+| `Esc`                | Hide window                              |
+| Resize               | Reposition to stay anchored to top-right |
 
 ### Positioning
 
@@ -151,6 +151,7 @@ ipcMain.handle('window:resize', (_, height: number) => {
 Both windows load the same renderer entry point. The renderer determines which view to show based on a query param or IPC message.
 
 **Option A: Query param**
+
 ```typescript
 // Main
 promptWindow.loadURL(`${baseURL}?view=prompt`)
@@ -161,6 +162,7 @@ const view = new URLSearchParams(window.location.search).get('view')
 ```
 
 **Option B: IPC on show**
+
 ```typescript
 // Main
 promptWindow.webContents.send('set-view', 'prompt')

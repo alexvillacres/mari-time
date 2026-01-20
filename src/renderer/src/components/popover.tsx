@@ -1,7 +1,8 @@
 import { ChevronRight, ChevronLeft } from 'lucide-react'
-import { useState, useEffect, useCallback } from 'react'
-import ActivityLog from './activity-log'
+import { useState } from 'react'
 import { formatDuration } from '../utils/duration'
+import { useTimeEntries } from '../hooks/useTimeEntries'
+import { ActivityLog } from './activity-log/activity-log'
 
 function getDateString(date: Date): string {
   return date.toISOString().split('T')[0]
@@ -24,20 +25,13 @@ function formatDateHeader(dateString: string): string {
 }
 
 export default function Popover(): React.JSX.Element {
-  const [selectedDate, setSelectedDate] = useState<string>(getDateString(new Date()))
-  const [totalSeconds, setTotalSeconds] = useState<number>(0)
+  const [selectedDate, setSelectedDate] = useState(() => getDateString(new Date()))
+
+  const { entries, isLoading, error, createEntry, updateTaskName, updateDuration, deleteEntry } =
+    useTimeEntries(selectedDate)
 
   const isToday = selectedDate === getDateString(new Date())
-
-  const loadTotalTime = useCallback(async (): Promise<void> => {
-    const entries = await window.api.timeEntries.getByDay(selectedDate)
-    const total = entries.reduce((sum, entry) => sum + entry.duration, 0)
-    setTotalSeconds(total)
-  }, [selectedDate])
-
-  useEffect(() => {
-    loadTotalTime()
-  }, [loadTotalTime])
+  const totalSeconds = entries.reduce((sum, entry) => sum + entry.duration, 0)
 
   const goToNextDay = (): void => {
     const current = new Date(selectedDate + 'T00:00:00')
@@ -83,7 +77,15 @@ export default function Popover(): React.JSX.Element {
 
         {/* Activity Log */}
         <div className="flex-1 min-h-0">
-          <ActivityLog selectedDate={selectedDate} onEntriesChange={loadTotalTime} />
+          <ActivityLog
+            entries={entries}
+            isLoading={isLoading}
+            error={error}
+            onCreateEntry={createEntry}
+            onUpdateTaskName={updateTaskName}
+            onUpdateDuration={updateDuration}
+            onDeleteEntry={deleteEntry}
+          />
         </div>
       </div>
     </div>

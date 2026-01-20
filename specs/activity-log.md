@@ -6,13 +6,13 @@ The "editor" view. Shows time entries for a given day, allows manual corrections
 
 Separate from prompt window. Opened via tray click.
 
-| Property | Value |
-|----------|-------|
-| Size | 400x300 (resizable) |
-| Frame | None |
-| Position | Top-right of primary display |
-| Always on top | Yes |
-| Show in taskbar | No |
+| Property        | Value                        |
+| --------------- | ---------------------------- |
+| Size            | 400x300 (resizable)          |
+| Frame           | None                         |
+| Position        | Top-right of primary display |
+| Always on top   | Yes                          |
+| Show in taskbar | No                           |
 
 Closes on blur (click outside).
 
@@ -50,10 +50,10 @@ Closes on blur (click outside).
 
 Both task name and duration are editable via click:
 
-| Field | Click | Edit behavior |
-|-------|-------|---------------|
+| Field     | Click            | Edit behavior                              |
+| --------- | ---------------- | ------------------------------------------ |
 | Task name | Opens text input | Type new name, auto-creates task if needed |
-| Duration | Opens text input | Flexible parsing (see below) |
+| Duration  | Opens text input | Flexible parsing (see below)               |
 
 **Save triggers**: Enter, blur (click outside input)
 **Cancel trigger**: Esc
@@ -62,16 +62,16 @@ Both task name and duration are editable via click:
 
 Accepts multiple formats, all case-insensitive:
 
-| Input | Interpreted as |
-|-------|----------------|
-| `1h 30m` | 1 hour 30 minutes |
-| `1h30m` | 1 hour 30 minutes |
-| `2h` | 2 hours |
-| `45m` | 45 minutes |
-| `1:30` | 1 hour 30 minutes |
-| `90` | 90 minutes (plain number = minutes) |
-| `1.5h` | 1 hour 30 minutes |
-| `0` or `0m` | Removes entry for this day |
+| Input       | Interpreted as                      |
+| ----------- | ----------------------------------- |
+| `1h 30m`    | 1 hour 30 minutes                   |
+| `1h30m`     | 1 hour 30 minutes                   |
+| `2h`        | 2 hours                             |
+| `45m`       | 45 minutes                          |
+| `1:30`      | 1 hour 30 minutes                   |
+| `90`        | 90 minutes (plain number = minutes) |
+| `1.5h`      | 1 hour 30 minutes                   |
+| `0` or `0m` | Removes entry for this day          |
 
 ### Duration Display
 
@@ -113,20 +113,20 @@ When the activity log window is visible, prompts are suppressed. User is already
 
 When activity log is focused:
 
-| Key | Action |
-|-----|--------|
-| `←` | Previous day |
-| `→` | Next day |
+| Key   | Action       |
+| ----- | ------------ |
+| `←`   | Previous day |
+| `→`   | Next day     |
 | `Esc` | Close window |
 
 When editing:
 
-| Key | Action |
-|-----|--------|
-| `Enter` | Save edit |
-| `Esc` | Cancel edit |
-| `Tab` | Move to next field (task → duration → next entry's task) |
-| `Shift+Tab` | Move to previous field |
+| Key         | Action                                                   |
+| ----------- | -------------------------------------------------------- |
+| `Enter`     | Save edit                                                |
+| `Esc`       | Cancel edit                                              |
+| `Tab`       | Move to next field (task → duration → next entry's task) |
+| `Shift+Tab` | Move to previous field                                   |
 
 ## Future Considerations
 

@@ -23,6 +23,15 @@ const api = {
   },
   window: {
     resize: (height: number) => ipcRenderer.invoke('window:resize', height)
+  },
+  settings: {
+    get: (key: string) => ipcRenderer.invoke('settings:get', key),
+    set: (key: string, value: unknown) => ipcRenderer.invoke('settings:set', key, value)
+  },
+  prompt: {
+    getState: () => ipcRenderer.invoke('prompt:get-state'),
+    resolve: (action: 'confirm' | 'deny' | 'switch', taskId?: number) =>
+      ipcRenderer.invoke('prompt:resolve', action, taskId)
   }
 }
 

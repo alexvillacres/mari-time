@@ -48,50 +48,51 @@ Convention: `domain:action`
 
 ### Tasks
 
-| Channel | Args | Returns | Description |
-|---------|------|---------|-------------|
-| `tasks:get-all` | — | `Task[]` | All tasks, sorted by created_at DESC |
-| `tasks:get-by-id` | `id: number` | `Task \| undefined` | Single task |
-| `tasks:create` | `name: string` | `Task` | Create and return new task |
-| `tasks:update` | `id: number, name: string` | `void` | Update task name |
-| `tasks:delete` | `id: number` | `void` | Delete task (cascades to entries) |
+| Channel           | Args                       | Returns             | Description                          |
+| ----------------- | -------------------------- | ------------------- | ------------------------------------ |
+| `tasks:get-all`   | —                          | `Task[]`            | All tasks, sorted by created_at DESC |
+| `tasks:get-by-id` | `id: number`               | `Task \| undefined` | Single task                          |
+| `tasks:create`    | `name: string`             | `Task`              | Create and return new task           |
+| `tasks:update`    | `id: number, name: string` | `void`              | Update task name                     |
+| `tasks:delete`    | `id: number`               | `void`              | Delete task (cascades to entries)    |
 
 ### Time Entries
 
-| Channel | Args | Returns | Description |
-|---------|------|---------|-------------|
-| `time-entries:get-all` | — | `TimeEntry[]` | All entries |
-| `time-entries:get-by-id` | `id: number` | `TimeEntry \| undefined` | Single entry |
-| `time-entries:get-by-day` | `date: string` | `TimeEntry[]` | Entries for YYYY-MM-DD |
-| `time-entries:get-by-week` | `date: string` | `TimeEntry[]` | Entries for week starting at date |
-| `time-entries:get-by-month` | `date: string` | `TimeEntry[]` | Entries for month of date |
-| `time-entries:create` | `taskId, date, duration` | `TimeEntry` | Create or upsert entry |
-| `time-entries:update` | `id, taskId, date, duration` | `void` | Update entry |
-| `time-entries:delete` | `id: number` | `void` | Delete entry |
-| `time-entries:confirm-task` | `taskId: number` | `TimeEntry` | Add 20 min to task for today (upsert) |
+| Channel                     | Args                         | Returns                  | Description                           |
+| --------------------------- | ---------------------------- | ------------------------ | ------------------------------------- |
+| `time-entries:get-all`      | —                            | `TimeEntry[]`            | All entries                           |
+| `time-entries:get-by-id`    | `id: number`                 | `TimeEntry \| undefined` | Single entry                          |
+| `time-entries:get-by-day`   | `date: string`               | `TimeEntry[]`            | Entries for YYYY-MM-DD                |
+| `time-entries:get-by-week`  | `date: string`               | `TimeEntry[]`            | Entries for week starting at date     |
+| `time-entries:get-by-month` | `date: string`               | `TimeEntry[]`            | Entries for month of date             |
+| `time-entries:create`       | `taskId, date, duration`     | `TimeEntry`              | Create or upsert entry                |
+| `time-entries:update`       | `id, taskId, date, duration` | `void`                   | Update entry                          |
+| `time-entries:delete`       | `id: number`                 | `void`                   | Delete entry                          |
+| `time-entries:confirm-task` | `taskId: number`             | `TimeEntry`              | Add 20 min to task for today (upsert) |
 
 ### Settings
 
-| Channel | Args | Returns | Description |
-|---------|------|---------|-------------|
-| `settings:get` | `key: string` | `any \| null` | Get setting value |
-| `settings:set` | `key: string, value: any` | `void` | Set setting value |
+| Channel        | Args                      | Returns       | Description       |
+| -------------- | ------------------------- | ------------- | ----------------- |
+| `settings:get` | `key: string`             | `any \| null` | Get setting value |
+| `settings:set` | `key: string, value: any` | `void`        | Set setting value |
 
 ### Window
 
-| Channel | Args | Returns | Description |
-|---------|------|---------|-------------|
-| `window:resize` | `height: number` | `void` | Resize current window (clamped 100-500) |
-| `window:close` | — | `void` | Hide current window |
+| Channel         | Args             | Returns | Description                             |
+| --------------- | ---------------- | ------- | --------------------------------------- |
+| `window:resize` | `height: number` | `void`  | Resize current window (clamped 100-500) |
+| `window:close`  | —                | `void`  | Hide current window                     |
 
 ### Prompt
 
-| Channel | Args | Returns | Description |
-|---------|------|---------|-------------|
-| `prompt:resolve` | `action, taskId?` | `void` | Handle prompt response |
-| `prompt:get-state` | — | `PromptState` | Get current task and task list |
+| Channel            | Args              | Returns       | Description                    |
+| ------------------ | ----------------- | ------------- | ------------------------------ |
+| `prompt:resolve`   | `action, taskId?` | `void`        | Handle prompt response         |
+| `prompt:get-state` | —                 | `PromptState` | Get current task and task list |
 
 **Prompt actions:**
+
 - `confirm` — Log time to current task
 - `deny` — Skip this interval
 - `switch` — Log time to specified taskId
@@ -108,8 +109,8 @@ interface Task {
 interface TimeEntry {
   id: number
   task_id: number
-  date: number        // Midnight timestamp
-  duration: number    // Seconds
+  date: number // Midnight timestamp
+  duration: number // Seconds
 }
 
 interface PromptState {
@@ -136,6 +137,7 @@ function dateStringToTimestamp(dateStr: string): number {
 ## Error Handling
 
 IPC handlers should catch errors and either:
+
 1. Return `undefined`/`null` for "not found" cases
 2. Throw for actual errors (renderer receives rejection)
 
@@ -146,7 +148,7 @@ ipcMain.handle('tasks:create', async (_, name: string) => {
     return db.createTask(name)
   } catch (error) {
     console.error('[IPC] tasks:create error:', error)
-    throw error  // Renderer gets Promise rejection
+    throw error // Renderer gets Promise rejection
   }
 })
 

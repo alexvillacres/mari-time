@@ -44,6 +44,11 @@ export function initializeDatabase(): Database.Database {
     );
 
     CREATE INDEX IF NOT EXISTS idx_time_entries_date ON time_entries(date);
+
+    CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    );
     `)
 
   return db
@@ -192,4 +197,26 @@ export function createTimeEntry(taskId: number, date: number, duration: number):
     RETURNING *
   `)
   return stmt.get(taskId, date, duration) as TimeEntry
+}
+
+// Settings
+export function getSetting(key: string): unknown | null {
+  const db = getDatabase()
+  const stmt = db.prepare('SELECT value FROM settings WHERE key = ?')
+  const row = stmt.get(key) as { value: string } | undefined
+  if (!row) return null
+  try {
+    return JSON.parse(row.value)
+  } catch {
+    return row.value
+  }
+}
+
+export function setSetting(key: string, value: unknown): void {
+  const db = getDatabase()
+  const stmt = db.prepare(`
+    INSERT INTO settings (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `)
+  stmt.run(key, JSON.stringify(value))
 }

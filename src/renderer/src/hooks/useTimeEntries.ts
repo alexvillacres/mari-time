@@ -3,13 +3,12 @@ import type { Task, TimeEntryWithTask } from '../types/time-entries'
 
 interface UseTimeEntriesReturn {
   entries: TimeEntryWithTask[]
-  tasks: Task[]
   isLoading: boolean
+  error: Error | null
   createEntry: (taskName: string, duration: number) => Promise<number>
   updateTaskName: (entryId: number, newTaskName: string) => Promise<void>
   updateDuration: (entryId: number, newDuration: number) => Promise<void>
   deleteEntry: (entryId: number) => Promise<void>
-  reload: () => Promise<void>
 }
 
 export function useTimeEntries(
@@ -19,23 +18,30 @@ export function useTimeEntries(
   const [entries, setEntries] = useState<TimeEntryWithTask[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   const loadData = useCallback(async (): Promise<void> => {
     setIsLoading(true)
-    const [entriesData, tasksData] = await Promise.all([
-      window.api.timeEntries.getByDay(selectedDate),
-      window.api.tasks.getAll()
-    ])
+    setError(null)
+    try {
+      const [entriesData, tasksData] = await Promise.all([
+        window.api.timeEntries.getByDay(selectedDate),
+        window.api.tasks.getAll()
+      ])
 
-    setTasks(tasksData)
+      setTasks(tasksData)
 
-    const entriesWithTasks = entriesData.map((entry) => ({
-      ...entry,
-      task: tasksData.find((t) => t.id === entry.task_id)
-    }))
+      const entriesWithTasks = entriesData.map((entry) => ({
+        ...entry,
+        task: tasksData.find((t) => t.id === entry.task_id)
+      }))
 
-    setEntries(entriesWithTasks)
-    setIsLoading(false)
+      setEntries(entriesWithTasks)
+    } catch (error) {
+      setError(error instanceof Error ? error : new Error('An unknown error occurred'))
+    } finally {
+      setIsLoading(false)
+    }
   }, [selectedDate])
 
   useEffect(() => {
@@ -44,12 +50,14 @@ export function useTimeEntries(
 
   const findOrCreateTask = useCallback(
     async (taskName: string): Promise<Task> => {
-      const trimmedName = taskName.trim()
-      let task = tasks.find((t) => t.name.toLowerCase() === trimmedName.toLowerCase())
-      if (!task) {
-        task = await window.api.tasks.create(trimmedName)
-      }
-      return task
+      const trimmed = taskName.trim()
+      const existing = tasks.find((t) => t.name.toLowerCase() === trimmed.toLowerCase())
+
+      if (existing) return existing
+
+      const newTask = await window.api.tasks.create(trimmed)
+      setTasks((prev) => [...prev, newTask])
+      return newTask
     },
     [tasks]
   )
@@ -58,59 +66,84 @@ export function useTimeEntries(
     async (taskName: string, duration: number): Promise<number> => {
       const task = await findOrCreateTask(taskName)
       const newEntry = await window.api.timeEntries.create(task.id, selectedDate, duration)
-      await loadData()
+
+      setEntries((prev) => [...prev, { ...newEntry, task }])
       onEntriesChange?.()
       return newEntry.id
     },
-    [findOrCreateTask, selectedDate, loadData, onEntriesChange]
+    [findOrCreateTask, selectedDate, onEntriesChange]
   )
 
   const updateTaskName = useCallback(
-    async (entryId: number, newTaskName: string): Promise<void> => {
+    async (entryId: number, name: string) => {
       const entry = entries.find((e) => e.id === entryId)
       if (!entry) return
 
-      const task = await findOrCreateTask(newTaskName)
-      await window.api.timeEntries.update(entryId, task.id, entry.date, entry.duration)
-      await loadData()
-      onEntriesChange?.()
+      const previousEntries = entries
+      const task = await findOrCreateTask(name)
+
+      // Optimistic update
+      setEntries((prev) =>
+        prev.map((e) => (e.id === entryId ? { ...e, task_id: task.id, task } : e))
+      )
+
+      try {
+        await window.api.timeEntries.update(entryId, task.id, entry.date, entry.duration)
+        onEntriesChange?.()
+      } catch (err) {
+        // Rollback on failure
+        setEntries(previousEntries)
+        throw err
+      }
     },
-    [entries, findOrCreateTask, loadData, onEntriesChange]
+    [entries, findOrCreateTask, onEntriesChange]
   )
 
   const updateDuration = useCallback(
-    async (entryId: number, newDuration: number): Promise<void> => {
+    async (entryId: number, duration: number) => {
       const entry = entries.find((e) => e.id === entryId)
       if (!entry) return
 
-      if (newDuration === 0) {
-        await window.api.timeEntries.delete(entryId)
-      } else {
-        await window.api.timeEntries.update(entryId, entry.task_id, entry.date, newDuration)
+      const previousEntries = entries
+
+      setEntries((prev) => prev.map((e) => (e.id === entryId ? { ...e, duration } : e)))
+
+      try {
+        await window.api.timeEntries.update(entryId, entry.task_id, entry.date, duration)
+        onEntriesChange?.()
+      } catch (err) {
+        setEntries(previousEntries)
+        throw err
       }
-      await loadData()
-      onEntriesChange?.()
     },
-    [entries, loadData, onEntriesChange]
+    [entries, onEntriesChange]
   )
 
   const deleteEntry = useCallback(
-    async (entryId: number): Promise<void> => {
-      await window.api.timeEntries.delete(entryId)
-      await loadData()
-      onEntriesChange?.()
+    async (entryId: number) => {
+      const previousEntries = entries
+
+      // Optimistic update
+      setEntries((prev) => prev.filter((e) => e.id !== entryId))
+
+      try {
+        await window.api.timeEntries.delete(entryId)
+        onEntriesChange?.()
+      } catch (err) {
+        setEntries(previousEntries)
+        throw err
+      }
     },
-    [loadData, onEntriesChange]
+    [entries, onEntriesChange]
   )
 
   return {
     entries,
-    tasks,
     isLoading,
+    error,
     createEntry,
     updateTaskName,
     updateDuration,
-    deleteEntry,
-    reload: loadData
+    deleteEntry
   }
 }

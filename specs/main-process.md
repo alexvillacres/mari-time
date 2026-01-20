@@ -39,9 +39,12 @@ Core of the time tracking system.
 let intervalId: NodeJS.Timeout | null = null
 
 function startTimer(): void {
-  intervalId = setInterval(() => {
-    handleInterval()
-  }, 20 * 60 * 1000) // 20 minutes
+  intervalId = setInterval(
+    () => {
+      handleInterval()
+    },
+    20 * 60 * 1000
+  ) // 20 minutes
 }
 
 function handleInterval(): void {
@@ -71,6 +74,7 @@ function shouldSuppress(): boolean {
 ```
 
 **Platform APIs:**
+
 - Fullscreen: `screen.getPrimaryDisplay()` + window bounds comparison, or use `powerMonitor` events
 - DND (macOS): `systemPreferences.getUserDefault('com.apple.notificationcenterui', 'dnd_enabled')`
 - Screen sharing: Check for active screen capture sessions
@@ -114,6 +118,7 @@ Registered in `app.whenReady()`. All database operations go through IPC.
 See [ipc.md](./ipc.md) for full channel list.
 
 Key handlers:
+
 - `tasks:*` — CRUD for tasks
 - `time-entries:*` — CRUD for time entries
 - `settings:*` — Get/set app settings
@@ -170,6 +175,7 @@ Timer fires
 ## Logging
 
 Use `console.log` with prefixes for debugging:
+
 - `[DB]` — Database operations
 - `[IPC]` — IPC handler calls
 - `[Timer]` — Interval events

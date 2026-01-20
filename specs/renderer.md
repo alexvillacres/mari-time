@@ -53,12 +53,14 @@ The interval prompt view. Shows task list, handles confirmation/denial.
 **Props**: None (fetches own data)
 
 **State**:
+
 - `tasks: Task[]` — All available tasks
 - `currentTaskId: number | null` — Pre-selected task
 - `selectedTaskId: number | null` — User's current selection
 - `newTaskName: string` — Input for creating new task
 
 **Behavior**:
+
 - On mount: Fetch tasks and current task from main process
 - Arrow keys navigate task list
 - Enter confirms selected task
@@ -93,6 +95,7 @@ function Prompt(): React.JSX.Element {
 Daily time entry view with inline editing.
 
 **Props**:
+
 - `selectedDate: string` — YYYY-MM-DD format
 - `onEntriesChange?: () => void` — Callback when entries modified
 
@@ -103,6 +106,7 @@ Daily time entry view with inline editing.
 Single entry row with inline editing for task name and duration.
 
 **Props**:
+
 - `entry: TimeEntryWithTask`
 - `isEditingTaskName: boolean`
 - `isEditingDuration: boolean`
@@ -118,6 +122,7 @@ Single entry row with inline editing for task name and duration.
 Inline form for creating new entries.
 
 **Props**:
+
 - `onSubmit: (taskName: string, duration: string) => void`
 - `onCancel: () => void`
 - `isEmpty: boolean` — Affects styling/positioning
@@ -145,6 +150,7 @@ function useTimeEntries(
 ```
 
 **Key behavior**:
+
 - Auto-loads entries when `selectedDate` changes
 - `createEntry` finds or creates task by name (case-insensitive match)
 - `updateDuration(id, 0)` deletes the entry
@@ -175,14 +181,17 @@ Only one field can be edited at a time across all entries.
 ### duration.ts
 
 **formatDuration(seconds: number): string**
+
 - Converts seconds to "Xh Ym" display format
 - Always shows both units: "2h 15m", "0h 45m"
 
 **formatDurationForEdit(seconds: number): string**
+
 - Compact format for editing: "45m", "2h", "2h 15m"
 - Omits zero units
 
 **parseDuration(input: string): number | null**
+
 - Parses flexible input formats
 - Returns seconds or null if invalid
 - See [activity-log.md](./activity-log.md) for format table

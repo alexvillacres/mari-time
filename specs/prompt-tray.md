@@ -33,14 +33,14 @@ Separate from the activity log. Small, focused, appears automatically when the t
 
 ### Resolution States
 
-| Action | Result | Time Logged |
-|--------|--------|-------------|
-| Ignore (timeout) | Confirm current task | +20 min to current |
-| Blur (click outside) | Confirm current task | +20 min to current |
-| Cmd+Enter | Confirm current task | +20 min to current |
-| Esc | Deny | Nothing logged |
-| Select different task | Switch | +20 min to selected |
-| Type new task + Enter | Switch | +20 min to new task |
+| Action                | Result               | Time Logged         |
+| --------------------- | -------------------- | ------------------- |
+| Ignore (timeout)      | Confirm current task | +20 min to current  |
+| Blur (click outside)  | Confirm current task | +20 min to current  |
+| Cmd+Enter             | Confirm current task | +20 min to current  |
+| Esc                   | Deny                 | Nothing logged      |
+| Select different task | Switch               | +20 min to selected |
+| Type new task + Enter | Switch               | +20 min to new task |
 
 ### Timeout Behavior
 
@@ -52,13 +52,13 @@ Separate from the activity log. Small, focused, appears automatically when the t
 
 Only active when prompt window is focused:
 
-| Key | Action |
-|-----|--------|
-| `Cmd+Enter` | Confirm current task |
-| `Esc` | Deny (no time logged) |
-| `↑` / `↓` | Navigate task list |
-| `Enter` | Confirm selected task |
-| Type | Filter tasks or create new |
+| Key         | Action                     |
+| ----------- | -------------------------- |
+| `Cmd+Enter` | Confirm current task       |
+| `Esc`       | Deny (no time logged)      |
+| `↑` / `↓`   | Navigate task list         |
+| `Enter`     | Confirm selected task      |
+| Type        | Filter tasks or create new |
 
 ## Tray
 
@@ -78,14 +78,14 @@ When suppressed, the interval still ticks. If a current task exists, time is aut
 
 ## Window Config
 
-| Property | Value |
-|----------|-------|
-| Size | ~300x250 (content-dependent) |
-| Frame | None |
-| Position | Top-right of primary display |
-| Always on top | Yes |
-| Show in taskbar | No |
-| Resizable | No |
+| Property        | Value                        |
+| --------------- | ---------------------------- |
+| Size            | ~300x250 (content-dependent) |
+| Frame           | None                         |
+| Position        | Top-right of primary display |
+| Always on top   | Yes                          |
+| Show in taskbar | No                           |
+| Resizable       | No                           |
 
 ## State: Current Task
 

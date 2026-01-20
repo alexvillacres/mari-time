@@ -2,7 +2,9 @@
 
 ## Overview
 
-Mari is a passive time-tracking menu bar app. Every 20 minutes (eventually adjustable), it prompts the user to confirm what they're working on. Users confirm, deny, or switch tasks. Time accumulates per task per day.
+Mari is a passive time-tracking menu bar app.
+
+Every 20 minutes (eventually adjustable), a prompt tray will popup and the user will confirm what they're working on. Users confirm, deny, or switch tasks. Time accumulates per task per day.
 
 ## Tech Stack
 

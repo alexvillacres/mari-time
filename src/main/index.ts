@@ -5,7 +5,11 @@ import { electronApp, is } from '@electron-toolkit/utils'
 import icon from '../../resources/menu-bar-icon.png?asset'
 
 let tray: Tray | null = null
-let popover: BrowserWindow | null = null
+let activityLogWindow: BrowserWindow | null = null
+let promptWindow: BrowserWindow | null = null
+let currentTaskId: number | null = null
+let intervalId: NodeJS.Timeout | null = null
+let promptTimeoutId: NodeJS.Timeout | null = null
 
 // Convert "YYYY-MM-DD" string to midnight unix timestamp (seconds)
 function dateStringToTimestamp(dateStr: string): number {
@@ -41,17 +45,19 @@ function createTray(): void {
   tray.setToolTip('Mari')
 
   tray.on('click', () => {
-    if (!popover) return
-    if (popover.isVisible()) {
-      hidePopover()
+    if (!activityLogWindow) return
+    if (activityLogWindow.isVisible()) {
+      activityLogWindow.hide()
     } else {
-      showPopover()
+      positionActivityLogWindow()
+      activityLogWindow.show()
+      activityLogWindow.focus()
     }
   })
 }
 
-function createPopover(): BrowserWindow {
-  popover = new BrowserWindow({
+function createActivityLogWindow(): BrowserWindow {
+  activityLogWindow = new BrowserWindow({
     width: 400,
     height: 300,
     show: false,
@@ -61,61 +67,171 @@ function createPopover(): BrowserWindow {
     movable: false,
     alwaysOnTop: true,
     skipTaskbar: true,
+    minWidth: 300,
+    minHeight: 200,
+    maxWidth: 500,
+    maxHeight: 600,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js')
     }
   })
 
-  positionPopover()
+  // Lower z-order than prompt
+  activityLogWindow.setAlwaysOnTop(true, 'pop-up-menu')
 
-  popover.on('ready-to-show', () => {
-    popover?.show()
+  positionActivityLogWindow()
+
+  // Reposition on resize
+  activityLogWindow.on('resize', positionActivityLogWindow)
+
+  activityLogWindow.on('ready-to-show', () => {
+    activityLogWindow?.show()
   })
 
-  popover.webContents.setWindowOpenHandler((details) => {
+  activityLogWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    popover.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    activityLogWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}?view=activity-log`)
   } else {
-    popover.loadFile(join(__dirname, '../renderer/index.html'))
+    activityLogWindow.loadFile(join(__dirname, '../renderer/index.html'), {
+      query: { view: 'activity-log' }
+    })
   }
 
-  popover.on('blur', () => {
+  activityLogWindow.on('blur', () => {
     // Small delay to allow internal focus changes (like clicking inputs)
     setTimeout(() => {
-      if (!popover?.isFocused()) {
-        popover?.hide()
+      if (!activityLogWindow?.isFocused()) {
+        activityLogWindow?.hide()
       }
     }, 100)
   })
 
-  return popover
+  return activityLogWindow
 }
 
-function positionPopover(): void {
-  if (!popover) return
+function createPromptWindow(): BrowserWindow {
+  promptWindow = new BrowserWindow({
+    width: 300,
+    height: 250,
+    show: false,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js')
+    }
+  })
+
+  // Higher z-order than activity log
+  promptWindow.setAlwaysOnTop(true, 'floating')
+
+  promptWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url)
+    return { action: 'deny' }
+  })
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    promptWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}?view=prompt`)
+  } else {
+    promptWindow.loadFile(join(__dirname, '../renderer/index.html'), {
+      query: { view: 'prompt' }
+    })
+  }
+
+  promptWindow.on('blur', () => {
+    // Small delay to allow internal focus changes
+    setTimeout(() => {
+      if (promptWindow && !promptWindow.isFocused() && promptWindow.isVisible()) {
+        handlePromptResolution('confirm')
+      }
+    }, 100)
+  })
+
+  return promptWindow
+}
+
+function positionActivityLogWindow(): void {
+  if (!activityLogWindow) return
   const display = screen.getPrimaryDisplay()
   const { width: screenWidth } = display.workAreaSize
   const workArea = display.workArea
-  const { width: popoverWidth } = popover.getBounds()
-  const x = workArea.x + screenWidth - popoverWidth - 8
+  const bounds = activityLogWindow.getBounds()
+  const x = workArea.x + screenWidth - bounds.width - 8
   const y = workArea.y + 8
-  popover.setPosition(x, y)
+  activityLogWindow.setPosition(x, y)
 }
 
-function showPopover(): void {
-  if (!popover) return
-  positionPopover()
-  popover.show()
-  popover.focus()
+function positionPromptWindow(): void {
+  if (!promptWindow) return
+  const display = screen.getPrimaryDisplay()
+  const { width: screenWidth } = display.workAreaSize
+  const workArea = display.workArea
+  const bounds = promptWindow.getBounds()
+  const x = workArea.x + screenWidth - bounds.width - 8
+  const y = workArea.y + 8
+  promptWindow.setPosition(x, y)
 }
 
-function hidePopover(): void {
-  if (!popover) return
-  popover.hide()
+// Timer functions
+function startTimer(): void {
+  intervalId = setInterval(handleInterval, 20 * 60 * 1000) // 20 minutes
+}
+
+function handleInterval(): void {
+  if (shouldSuppress()) {
+    if (currentTaskId) {
+      db.confirmTask(currentTaskId)
+      console.log('[Timer] Suppressed, auto-confirmed task:', currentTaskId)
+    }
+    return
+  }
+  showPromptWindow()
+}
+
+function shouldSuppress(): boolean {
+  return activityLogWindow?.isVisible() ?? false
+}
+
+function showPromptWindow(): void {
+  if (!promptWindow) return
+  positionPromptWindow()
+  promptWindow.show()
+  promptWindow.focus()
+
+  // 10-second auto-dismiss (confirms current task)
+  promptTimeoutId = setTimeout(() => {
+    handlePromptResolution('confirm')
+  }, 10000)
+}
+
+function hidePromptWindow(): void {
+  if (promptTimeoutId) {
+    clearTimeout(promptTimeoutId)
+    promptTimeoutId = null
+  }
+  promptWindow?.hide()
+}
+
+function handlePromptResolution(action: string, taskId?: number): void {
+  hidePromptWindow()
+
+  if (action === 'confirm' && currentTaskId) {
+    db.confirmTask(currentTaskId)
+    console.log('[Prompt] Confirmed task:', currentTaskId)
+  } else if (action === 'switch' && taskId) {
+    db.confirmTask(taskId)
+    currentTaskId = taskId
+    db.setSetting('current_task_id', taskId)
+    console.log('[Prompt] Switched to task:', taskId)
+  }
+  // 'deny' = no action, just hide
 }
 
 app.whenReady().then(() => {
@@ -123,6 +239,11 @@ app.whenReady().then(() => {
 
   db.initializeDatabase()
 
+  // Load persisted current task
+  currentTaskId = db.getSetting('current_task_id') as number | null
+  console.log('[App] Loaded current_task_id:', currentTaskId)
+
+  // Task IPC handlers
   ipcMain.handle('tasks:get-all', () => {
     return db.getAllTasks()
   })
@@ -151,6 +272,7 @@ app.whenReady().then(() => {
     return db.deleteTask(id)
   })
 
+  // Time entry IPC handlers
   ipcMain.handle('time-entries:get-all', () => {
     return db.getAllTimeEntries()
   })
@@ -222,21 +344,48 @@ app.whenReady().then(() => {
     }
   )
 
+  // Window IPC handlers
   ipcMain.handle('window:resize', (_, height: number) => {
-    if (!popover) return
+    if (!activityLogWindow) return
     const minHeight = 100
     const maxHeight = 500
     const clampedHeight = Math.min(Math.max(height, minHeight), maxHeight)
-    const { width } = popover.getBounds()
-    popover.setSize(width, clampedHeight)
-    positionPopover()
+    const { width } = activityLogWindow.getBounds()
+    activityLogWindow.setSize(width, clampedHeight)
+    positionActivityLogWindow()
+  })
+
+  // Settings IPC handlers
+  ipcMain.handle('settings:get', (_, key: string) => {
+    return db.getSetting(key)
+  })
+
+  ipcMain.handle('settings:set', (_, key: string, value: unknown) => {
+    db.setSetting(key, value)
+  })
+
+  // Prompt IPC handlers
+  ipcMain.handle('prompt:get-state', () => {
+    return { currentTaskId }
+  })
+
+  ipcMain.handle('prompt:resolve', (_, action: string, taskId?: number) => {
+    handlePromptResolution(action, taskId)
   })
 
   createTray()
-  createPopover()
+  createActivityLogWindow()
+  createPromptWindow()
+
+  // Start 20-minute timer
+  startTimer()
+  console.log('[Timer] Started 20-minute interval')
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createPopover()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createActivityLogWindow()
+      createPromptWindow()
+    }
   })
 })
 
@@ -249,5 +398,12 @@ app.on('window-all-closed', () => {
   }
 })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+// Cleanup on quit
+app.on('will-quit', () => {
+  if (intervalId) {
+    clearInterval(intervalId)
+  }
+  if (promptTimeoutId) {
+    clearTimeout(promptTimeoutId)
+  }
+})

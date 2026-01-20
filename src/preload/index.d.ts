@@ -11,6 +11,10 @@ export interface TimeEntry {
   duration: number
 }
 
+export interface PromptState {
+  currentTaskId: number | null
+}
+
 declare global {
   interface Window {
     api: {
@@ -33,6 +37,14 @@ declare global {
       }
       window: {
         resize: (height: number) => Promise<void>
+      }
+      settings: {
+        get: (key: string) => Promise<unknown | null>
+        set: (key: string, value: unknown) => Promise<void>
+      }
+      prompt: {
+        getState: () => Promise<PromptState>
+        resolve: (action: 'confirm' | 'deny' | 'switch', taskId?: number) => Promise<void>
       }
     }
   }
